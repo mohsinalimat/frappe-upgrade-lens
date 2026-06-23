@@ -49,8 +49,22 @@ def _run_git(app_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
 	)
 
 
+def _get_app_git_root(app_name: str) -> Path:
+	"""Bench apps keep .git at the app source root (e.g. apps/frappe), not the package subfolder."""
+	app_name = frappe.scrub(app_name)
+	candidates = [
+		Path(frappe.get_app_source_path(app_name)),
+		Path(frappe.get_app_path(app_name)),
+		Path(frappe.get_app_path(app_name)).parent,
+	]
+	for candidate in candidates:
+		if (candidate / ".git").exists():
+			return candidate.resolve()
+	return Path(frappe.get_app_source_path(app_name)).resolve()
+
+
 def _resolve_upstream_ref(app_name: str, app_version: str, registry_entry: dict) -> str | None:
-	app_path = Path(frappe.get_app_path(app_name))
+	app_path = _get_app_git_root(app_name)
 	if not (app_path / ".git").exists():
 		return None
 
@@ -114,7 +128,7 @@ def get_git_upstream_report(app_name: str, app_version: str | None = None) -> di
 		return {"app": app_name, "skipped": True, "reason": "not_installed", "status": "skipped"}
 
 	registry_entry = _get_registry().get(app_name, {})
-	app_path = Path(frappe.get_app_path(app_name))
+	app_path = _get_app_git_root(app_name)
 
 	if not (app_path / ".git").exists():
 		return {
@@ -140,7 +154,8 @@ def get_git_upstream_report(app_name: str, app_version: str | None = None) -> di
 			"modified_files": [],
 		}
 
-	diff = _run_git(app_path, "diff", "--name-status", f"{upstream_ref}..HEAD")
+	# Compare upstream tag/branch to the working tree (includes uncommitted local edits).
+	diff = _run_git(app_path, "diff", "--name-status", upstream_ref)
 	if diff.returncode != 0:
 		return {
 			"app": app_name,
@@ -153,6 +168,11 @@ def get_git_upstream_report(app_name: str, app_version: str | None = None) -> di
 		}
 
 	modified_files = _parse_name_status(diff.stdout or "")
+
+	# Track uncommitted changes separately for clearer reporting.
+	uncommitted_diff = _run_git(app_path, "diff", "--name-status", "HEAD")
+	uncommitted_files = _parse_name_status(uncommitted_diff.stdout or "") if uncommitted_diff.returncode == 0 else []
+
 	truncated = len(modified_files) > MAX_DIFF_FILES
 	if truncated:
 		modified_files = modified_files[:MAX_DIFF_FILES]
@@ -160,6 +180,8 @@ def get_git_upstream_report(app_name: str, app_version: str | None = None) -> di
 	status = "clean" if not modified_files else "dirty"
 	if modified_files and any(item["status"].startswith("D") for item in modified_files):
 		status = "diverged"
+	if uncommitted_files and status == "clean":
+		status = "dirty"
 
 	return {
 		"app": app_name,
@@ -169,6 +191,9 @@ def get_git_upstream_report(app_name: str, app_version: str | None = None) -> di
 		"fetch": fetch_info,
 		"modified_files": modified_files,
 		"modified_count": len(modified_files),
+		"uncommitted_files": uncommitted_files,
+		"uncommitted_count": len(uncommitted_files),
+		"has_uncommitted_changes": bool(uncommitted_files),
 		"truncated": truncated,
 	}
 

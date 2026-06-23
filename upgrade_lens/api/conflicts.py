@@ -143,7 +143,7 @@ def _scan_core_modifications() -> list[dict]:
 			continue
 
 		report = get_git_upstream_report(app_name)
-		if report.get("modified_files"):
+		if report.get("modified_files") or report.get("status") in ("dirty", "diverged"):
 			results.append(report)
 
 	return results

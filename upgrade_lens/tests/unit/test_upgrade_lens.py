@@ -76,7 +76,65 @@ class TestStrategist(unittest.TestCase):
 
 		result = build_strategy("17.0.0", rule_set, env, db, apps, conflicts)
 		self.assertIn(result["risk_level"], ("Low", "Medium", "High"))
-		self.assertTrue(any(path["id"] == "A" for path in result["paths"]))
+		recommended = [p for p in result["paths"] if p.get("recommended")]
+		self.assertEqual(len(recommended), 1)
+		self.assertEqual(result["recommended_path_id"], recommended[0]["id"])
+
+	def test_infra_failure_recommends_clean_server(self):
+		from upgrade_lens.api.strategist import build_strategy
+
+		env = {
+			"python_version": "3.14.5",
+			"node_version": "v20.0.0",
+			"db_type": "postgres",
+			"db_version": "15.0",
+			"site": "test.local",
+		}
+		rule_set = {
+			"infra_requirements": {"python": ">=3.11,<3.14", "node": ">=18", "postgres": ">=13"},
+			"bench_commands": {},
+		}
+		result = build_strategy(
+			"17.0.0",
+			rule_set,
+			env,
+			{"size_gb": 1, "heavy_tables": []},
+			{"custom_apps": [], "total_apps": 2},
+			{"client_scripts": [], "server_scripts": [], "schema_conflicts": [], "core_modifications": []},
+		)
+		self.assertEqual(result["recommended_path_id"], "C")
+
+	def test_low_risk_recommends_in_place(self):
+		from upgrade_lens.api.strategist import build_strategy
+
+		env = {
+			"python_version": "3.12.0",
+			"node_version": "v20.0.0",
+			"db_type": "postgres",
+			"db_version": "15.0",
+			"site": "test.local",
+		}
+		rule_set = {
+			"infra_requirements": {"python": ">=3.10,<3.14", "node": ">=18", "postgres": ">=13"},
+			"bench_commands": {},
+		}
+		result = build_strategy(
+			"17.0.0",
+			rule_set,
+			env,
+			{"size_gb": 0.5, "heavy_tables": []},
+			{"custom_apps": [], "total_apps": 2},
+			{"client_scripts": [], "server_scripts": [], "schema_conflicts": [], "core_modifications": []},
+		)
+		self.assertEqual(result["recommended_path_id"], "A")
+
+	def test_fix_suggestion_for_python_too_new(self):
+		from upgrade_lens.api.strategist import _fix_suggestion
+
+		suggestion = _fix_suggestion("python", ">=3.11,<3.14", "3.14.5", False)
+		self.assertIsNotNone(suggestion)
+		self.assertIn("3.14.5", suggestion)
+		self.assertIn("Downgrade", suggestion)
 
 
 class TestGitAudit(unittest.TestCase):
@@ -87,6 +145,47 @@ class TestGitAudit(unittest.TestCase):
 		report = get_git_upstream_report("react_platform")
 		self.assertTrue(report["skipped"])
 		self.assertEqual(report["reason"], "custom_app")
+
+	@patch("upgrade_lens.utils.git_audit._get_registry", return_value={"frappe": {"official": True, "repo": "https://github.com/frappe/frappe"}})
+	@patch("upgrade_lens.utils.git_audit._is_official_app", return_value=True)
+	@patch("upgrade_lens.utils.git_audit.frappe")
+	@patch("upgrade_lens.utils.git_audit._run_git")
+	@patch("upgrade_lens.utils.git_audit._maybe_fetch_tags")
+	@patch("upgrade_lens.utils.git_audit._resolve_upstream_ref", return_value="v16.22.0")
+	def test_detects_uncommitted_working_tree_changes(
+		self, _mock_ref, _mock_fetch, mock_git, mock_frappe, _mock_official, _mock_registry
+	):
+		from upgrade_lens.utils.git_audit import get_git_upstream_report
+
+		mock_frappe.scrub.side_effect = lambda x: x
+		mock_frappe.get_installed_apps.return_value = ["frappe"]
+		mock_frappe.local.app_modules = {"frappe": True}
+		mock_frappe.get_app_source_path.return_value = "/apps/frappe"
+		mock_frappe.get_app_path.return_value = "/apps/frappe/frappe"
+		mock_frappe.get_module.return_value = type("M", (), {"__version__": "16.22.0"})()
+
+		def git_side_effect(app_path, *args):
+			result = subprocess.CompletedProcess(args, 0, "", "")
+			if args[:3] == ("diff", "--name-status", "v16.22.0"):
+				result.stdout = "M\tfrappe/hooks.py\n"
+			elif args[:3] == ("diff", "--name-status", "HEAD"):
+				result.stdout = "M\tfrappe/hooks.py\n"
+			return result
+
+		import subprocess
+
+		mock_git.side_effect = git_side_effect
+
+		with patch("upgrade_lens.utils.git_audit._get_app_git_root") as mock_root:
+			from pathlib import Path
+
+			mock_root.return_value = Path("/apps/frappe")
+			with patch("pathlib.Path.exists", return_value=True):
+				report = get_git_upstream_report("frappe", "16.22.0")
+
+		self.assertEqual(report["status"], "dirty")
+		self.assertEqual(report["modified_count"], 1)
+		self.assertTrue(report["has_uncommitted_changes"])
 
 
 if __name__ == "__main__":

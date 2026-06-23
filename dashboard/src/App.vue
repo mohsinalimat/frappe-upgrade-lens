@@ -36,6 +36,15 @@ onMounted(() => {
 <template>
 	<div class="upgrade-lens-dashboard">
 		<div class="ul-toolbar">
+			<div class="ul-toolbar-text">
+				<p class="text-muted text-small margin-0">
+					{{
+						__(
+							"Select the major version you plan to upgrade to, then run a read-only scan of this site."
+						)
+					}}
+				</p>
+			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Target Major Version") }}</label>
 				<input
@@ -53,12 +62,12 @@ onMounted(() => {
 
 		<div v-if="error" class="alert alert-danger ul-error" role="alert">{{ error }}</div>
 
-		<div v-if="loading && !summary" class="ul-loading">
+		<div v-if="loading" class="ul-loading">
 			<div class="spinner-border spinner text-muted" role="status" />
 			<div>{{ __("Analyzing environment...") }}</div>
 		</div>
 
-		<template v-if="summary">
+		<template v-else-if="summary">
 			<KpiHeader :summary="summary" />
 
 			<div class="ul-section-label">{{ __("Infrastructure Compatibility") }}</div>
@@ -72,6 +81,12 @@ onMounted(() => {
 					{{ __("Strategy Planner") }}
 				</button>
 			</div>
+			<p v-if="activeTab === 'scanner'" class="ul-tab-hint text-muted text-small">
+				{{ __("Review customization conflicts and app drift that may block or complicate the upgrade.") }}
+			</p>
+			<p v-else class="ul-tab-hint text-muted text-small">
+				{{ __("Recommended migration approach based on your risk score and infrastructure compatibility.") }}
+			</p>
 
 			<TabCodeScanner
 				v-if="activeTab === 'scanner'"

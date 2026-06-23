@@ -10,7 +10,16 @@ defineProps({
 <template>
 	<div class="widget-group">
 		<div class="widget-group-head">
-			<div class="widget-group-title">{{ __("System Overview") }}</div>
+			<div>
+				<div class="widget-group-title">{{ __("System Overview") }}</div>
+				<p class="ul-section-desc text-muted">
+					{{
+						__(
+							"Snapshot of your current stack, upgrade target, overall risk score, and database footprint before you migrate."
+						)
+					}}
+				</p>
+			</div>
 		</div>
 		<div class="grid-col-3">
 			<div class="widget border number-widget-box">
