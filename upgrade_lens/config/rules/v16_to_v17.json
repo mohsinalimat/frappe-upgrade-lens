@@ -1,0 +1,33 @@
+{
+	"source_major": 16,
+	"target_major": 17,
+	"infra_requirements": {
+		"python": ">=3.11,<3.14",
+		"node": ">=18",
+		"mariadb": ">=10.6",
+		"postgres": ">=14"
+	},
+	"deprecated_patterns": [],
+	"unsupported_hooks": [],
+	"new_native_fields": {},
+	"heavy_tables": ["Error Log", "Activity Log", "Email Queue", "Version", "Communication"],
+	"bench_commands": {
+		"in_place": [
+			"bench update --reset",
+			"bench --site {site} migrate",
+			"bench build",
+			"bench --site {site} clear-cache"
+		],
+		"staging": [
+			"bench --site {site} backup --with-files",
+			"bench new-site staging.local",
+			"bench --site staging.local restore <backup-path>",
+			"bench --site staging.local migrate"
+		],
+		"clean_server": [
+			"bench init <bench-path> --frappe-branch version-17",
+			"bench new-site {site}",
+			"bench --site {site} restore <backup-path>"
+		]
+	}
+}

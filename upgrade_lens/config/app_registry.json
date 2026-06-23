@@ -1,0 +1,32 @@
+{
+	"frappe": {
+		"repo": "https://github.com/frappe/frappe",
+		"version_branch_pattern": "version-{major}",
+		"tag_pattern": "v{version}",
+		"official": true
+	},
+	"erpnext": {
+		"repo": "https://github.com/frappe/erpnext",
+		"version_branch_pattern": "version-{major}",
+		"tag_pattern": "v{version}",
+		"official": true
+	},
+	"hrms": {
+		"repo": "https://github.com/frappe/hrms",
+		"version_branch_pattern": "version-{major}",
+		"tag_pattern": "v{version}",
+		"official": true
+	},
+	"healthcare": {
+		"repo": "https://github.com/earthians/marley",
+		"version_branch_pattern": "version-{major}",
+		"tag_pattern": "v{version}",
+		"official": true
+	},
+	"payments": {
+		"repo": "https://github.com/frappe/payments",
+		"version_branch_pattern": "version-{major}",
+		"tag_pattern": "v{version}",
+		"official": true
+	}
+}

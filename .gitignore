@@ -1,0 +1,10 @@
+dashboard/node_modules/
+dashboard/dist/
+upgrade_lens/public/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+yarn-error.log

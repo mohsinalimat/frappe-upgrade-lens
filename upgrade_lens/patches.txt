@@ -1,0 +1,5 @@
+[pre_model_sync]
+# Intentionally empty — no schema patches in v1.
+
+[post_model_sync]
+# Intentionally empty — uninstall leaves no orphan tables.

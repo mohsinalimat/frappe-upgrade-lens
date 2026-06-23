@@ -1,0 +1,55 @@
+{
+	"source_major": 15,
+	"target_major": 16,
+	"infra_requirements": {
+		"python": ">=3.10,<3.14",
+		"node": ">=18",
+		"mariadb": ">=10.6",
+		"postgres": ">=13"
+	},
+	"deprecated_patterns": [
+		{
+			"id": "frappe.get_doc_hooks",
+			"regex": "frappe\\.get_doc_hooks",
+			"severity": "high",
+			"message": "frappe.get_doc_hooks was removed in v16",
+			"doc_url": "https://github.com/frappe/frappe/wiki"
+		},
+		{
+			"id": "frappe.utils.nestedset",
+			"regex": "frappe\\.utils\\.nestedset",
+			"severity": "medium",
+			"message": "Verify nestedset import paths for v16",
+			"doc_url": ""
+		}
+	],
+	"unsupported_hooks": [
+		"legacy_hooks",
+		"website_context"
+	],
+	"new_native_fields": {
+		"Sales Invoice": ["tax_withholding_category"]
+	},
+	"heavy_tables": ["Error Log", "Activity Log", "Email Queue", "Version", "Communication"],
+	"bench_commands": {
+		"in_place": [
+			"bench update --reset",
+			"bench --site {site} migrate",
+			"bench build --apps frappe,erpnext",
+			"bench --site {site} clear-cache"
+		],
+		"staging": [
+			"bench --site {site} backup --with-files",
+			"bench get-app <custom-apps>",
+			"bench new-site staging.local --install-app frappe",
+			"bench --site staging.local restore <backup-path>",
+			"bench --site staging.local migrate"
+		],
+		"clean_server": [
+			"bench init <bench-path> --frappe-branch version-16",
+			"bench get-app erpnext --branch version-16",
+			"bench new-site {site} --install-app erpnext",
+			"bench --site {site} restore <backup-path>"
+		]
+	}
+}
