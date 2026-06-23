@@ -1,7 +1,7 @@
 [project]
 name = "upgrade_lens"
 authors = [
-    { name = "Upgrade Lens Contributors", email = "https://github.com/usman8786/frappe-upgrade-lens" }
+    { name = "Muhammad Usman" },
 ]
 license = { text = "MIT" }
 description = "Pre-migration upgrade assessment dashboard"
@@ -11,6 +11,11 @@ dynamic = ["version"]
 dependencies = [
     # "frappe~=16.0.0" # Installed and managed by bench.
 ]
+
+[project.urls]
+Homepage = "https://github.com/usman8786/frappe-upgrade-lens"
+Repository = "https://github.com/usman8786/frappe-upgrade-lens"
+Issues = "https://github.com/usman8786/frappe-upgrade-lens/issues"
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
