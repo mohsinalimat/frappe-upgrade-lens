@@ -1,0 +1,31 @@
+---
+name: Bug report
+about: Report a scanner or dashboard issue
+title: "[Bug]: "
+labels: bug
+assignees: ''
+---
+
+## Environment
+
+- Upgrade Lens version:
+- Frappe version:
+- ERPNext version (if installed):
+- Python version:
+- Node.js version:
+- Database (MariaDB / PostgreSQL) and version:
+
+## Steps to reproduce
+
+1.
+2.
+
+## Expected behavior
+
+## Actual behavior
+
+## Scan output or screenshots
+
+<!-- Redact site names, credentials, and internal URLs -->
+
+## Additional context

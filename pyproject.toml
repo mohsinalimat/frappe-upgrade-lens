@@ -1,8 +1,9 @@
 [project]
 name = "upgrade_lens"
 authors = [
-    { name = "Open Source", email = "dev@example.com"}
+    { name = "Upgrade Lens Contributors", email = "https://github.com/usman8786/frappe-upgrade-lens" }
 ]
+license = { text = "MIT" }
 description = "Pre-migration upgrade assessment dashboard"
 requires-python = ">=3.10"
 readme = "README.md"

@@ -1,8 +1,8 @@
 app_name = "upgrade_lens"
 app_title = "Upgrade Lens"
-app_publisher = "Open Source"
-app_description = "Pre-migration upgrade assessment dashboard"
-app_email = "dev@example.com"
+app_publisher = "Upgrade Lens Contributors"
+app_description = "Read-only pre-migration upgrade assessment dashboard for Frappe"
+app_email = "https://github.com/usman8786/frappe-upgrade-lens"
 app_license = "mit"
 
 # Standalone app — no required_apps, fixtures, patches, doc_events, or global JS.

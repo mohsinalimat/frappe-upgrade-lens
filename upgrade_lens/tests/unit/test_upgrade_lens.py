@@ -142,7 +142,7 @@ class TestGitAudit(unittest.TestCase):
 	def test_skips_custom_app(self, _mock_official):
 		from upgrade_lens.utils.git_audit import get_git_upstream_report
 
-		report = get_git_upstream_report("react_platform")
+		report = get_git_upstream_report("my_custom_app")
 		self.assertTrue(report["skipped"])
 		self.assertEqual(report["reason"], "custom_app")
 
